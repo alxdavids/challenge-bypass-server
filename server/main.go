@@ -71,7 +71,7 @@ func (c *Server) handle(conn *net.TCPConn) error {
 	metrics.CounterConnections.Inc()
 
 	// This is directly in the user's path, an overly slow connection should just fail
-	conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+	conn.SetReadDeadline(time.Now().Add(2000 * time.Millisecond))
 
 	// Read the request but never more than a worst-case assumption
 	var buf = new(bytes.Buffer)
