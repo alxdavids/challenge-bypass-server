@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/cloudflare/btd/crypto"
+	"github.com/alxdavids/btd/crypto"
 )
 
 func TestEncodeTokenArray(t *testing.T) {

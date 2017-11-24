@@ -6,8 +6,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/cloudflare/btd/crypto"
-	"github.com/cloudflare/btd/metrics"
+	"github.com/alxdavids/btd/crypto"
+	"github.com/alxdavids/btd/metrics"
 	"math/big"
 	"net"
 )

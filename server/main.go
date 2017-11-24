@@ -13,9 +13,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/cloudflare/btd"
-	"github.com/cloudflare/btd/crypto"
-	"github.com/cloudflare/btd/metrics"
+	"github.com/alxdavids/btd"
+	"github.com/alxdavids/btd/crypto"
+	"github.com/alxdavids/btd/metrics"
 )
 
 var (
