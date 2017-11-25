@@ -103,21 +103,29 @@ func (c *Server) handle(conn *net.TCPConn) error {
 
 	switch request.Type {
 	case btd.ISSUE:
+		fmt.Printf("\n***START_SIGN***")
 		metrics.CounterIssueTotal.Inc()
+		since := time.Now()
 		err = btd.HandleIssue(conn, request, c.key, c.G, c.H, c.MaxTokens)
 		if err != nil {
 			metrics.CounterIssueError.Inc()
 			return err
 		}
+		fmt.Printf("Total signing: %v\n", time.Since(since))
+		fmt.Println("***END_SIGN***")
 		return nil
 	case btd.REDEEM:
+		fmt.Println("***START_REDEEM***")
 		metrics.CounterRedeemTotal.Inc()
+		since := time.Now()
 		err = btd.HandleRedeem(conn, request, wrapped.Host, wrapped.Path, c.key)
 		if err != nil {
 			metrics.CounterRedeemError.Inc()
 			conn.Write([]byte(err.Error())) // anything other than "success" counts as a VERIFY_ERROR
 			return err
 		}
+		fmt.Printf("Total redeem: %v\n", time.Since(since))
+		fmt.Println("***END_REDEEM***")
 		return nil
 	default:
 		errLog.Printf("unrecognized request type \"%s\"", request.Type)

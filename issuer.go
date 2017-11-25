@@ -10,6 +10,7 @@ import (
 	"github.com/alxdavids/btd/metrics"
 	"math/big"
 	"net"
+	"time"
 )
 
 var (
@@ -37,6 +38,7 @@ func ApproveTokens(req BlindTokenRequest, key []byte, G, H *crypto.Point) ([][]b
 	}
 
 	// Sign the points
+	since := time.Now()
 	Q := make([]*crypto.Point, len(P))
 	for i := 0; i < len(Q); i++ {
 		if !P[i].IsOnCurve() {
@@ -44,12 +46,15 @@ func ApproveTokens(req BlindTokenRequest, key []byte, G, H *crypto.Point) ([][]b
 		}
 		Q[i] = crypto.SignPoint(P[i], key)
 	}
+	fmt.Printf("Point signing: %v\n", time.Since(since))
 
 	// Generate batch DLEQ proof
+	sinceBp := time.Now()
 	bp, err := crypto.NewBatchProof(stdcrypto.SHA256, G, H, P, Q, new(big.Int).SetBytes(key))
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("Proof computation: %v\n", time.Since(sinceBp))
 
 	// Check that the proof is valid
 	if !bp.Verify() {
@@ -80,6 +85,7 @@ func RedeemToken(req BlindTokenRequest, host, path, key []byte) error {
 	curve := elliptic.P256()
 	hash := stdcrypto.SHA256
 
+	since := time.Now()
 	token, requestBinder := req.Contents[0], req.Contents[1]
 	T, err := crypto.HashToCurve(curve, hash, token)
 	if err != nil {
@@ -87,14 +93,16 @@ func RedeemToken(req BlindTokenRequest, host, path, key []byte) error {
 	}
 	sharedPoint := crypto.SignPoint(T, key)
 	sharedKey := crypto.DeriveKey(hash, sharedPoint, token)
+	fmt.Printf("Key derivation: %v\n", time.Since(since))
 
+	sinceMAC := time.Now()
 	requestData := [][]byte{host, path}
 	valid := crypto.CheckRequestBinding(hash, sharedKey, requestBinder, requestData)
-
 	if !valid {
 		metrics.CounterRedeemErrorVerify.Inc()
 		return fmt.Errorf("%s, host: %s, path: %s", ErrInvalidMAC.Error(), host, path)
 	}
+	fmt.Printf("MAC compute time: %v\n", time.Since(sinceMAC))
 
 	doubleSpent := SpentTokens.CheckToken(token)
 	if doubleSpent {
